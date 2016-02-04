@@ -1,0 +1,12 @@
+﻿select VehicleRegistionNumber, COUNT(1) as CNT into ##Vehicles from Claim cl  with(nolock)
+where cl.IsMostRecent = 1
+group by VehicleRegistionNumber
+having COUNT(1) > 1
+
+select cl.ClaimID, cl.ClaimNumber, cl.VehicleRegistionNumber, convert(varchar, cii.EventDate, 110) as EventDate
+from Claim cl with(nolock)
+left join ClaimInformantInfo cii with(nolock) on cii.ClaimID= cl.ClaimID
+where cl.IsMostRecent = 1 
+and cl.VehicleRegistionNumber in (
+	select VehicleRegistionNumber from ##Vehicles
+)

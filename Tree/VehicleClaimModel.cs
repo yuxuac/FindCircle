@@ -12,5 +12,8 @@ namespace Tree
         public int ID { get; set; }
         public string ClaimNumber { get; set; }
         public string VehicleRegistionNumber { get; set; }
+        public string EventDate { get; set; }
+
+        public string VE { get { return VehicleRegistionNumber + "#" + EventDate; } }
     }
 }

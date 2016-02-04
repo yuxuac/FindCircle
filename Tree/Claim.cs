@@ -11,10 +11,10 @@ namespace Tree
     {
         public string ClaimNumber { get; set; }
         public string VehicleRegistrationNumber { get; set; }
-
+        public string EventDate { get; set; }
         public override string ToString()
         {
-            return string.Format("{0}-{1}", ClaimNumber, VehicleRegistrationNumber);
+            return string.Format("{0}-{1}-{2}", ClaimNumber, VehicleRegistrationNumber, EventDate.Replace("-", "/"));
         }
     }
 }

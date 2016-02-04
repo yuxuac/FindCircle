@@ -20,7 +20,8 @@ namespace Tree
 
         static void Main(string[] args)
         {
-            TestMethod1();
+            // TestMethod1();
+            MajorMethod();
         }
 
         public static void MajorMethod()
@@ -42,19 +43,27 @@ namespace Tree
 
             using (StreamWriter sw = new StreamWriter(file))
             {
+                sw.AutoFlush = true;
                 sw.WriteLine("Found a circle");
                 for (int i = 0; i < validVehicleRegistrationNumbers.Length; i++)
                 {
                     try
                     {
                         decimal percentage = (decimal)(i * 100) / validVehicleRegistrationNumbers.Length;
-                        Console.WriteLine(string.Format(@"{0}:{1}/{2}({3}%)", validVehicleRegistrationNumbers[i], i, validVehicleRegistrationNumbers.Length, percentage.ToString("F5")));
+                        Console.WriteLine(string.Format(@"{0}:{1}/{2}({3}%)", validVehicleRegistrationNumbers[i], i, 
+                            validVehicleRegistrationNumbers.Length, percentage.ToString("F5")));
+
+                        var rootClaim = vehicleClaims.Where(v => v.VehicleRegistionNumber == validVehicleRegistrationNumbers[i])
+                                                           .OrderByDescending(v => v.EventDate)
+                                                           .FirstOrDefault();
+
                         var root = new Node()
                         {
                             ClaimInfo = new Claim()
                             {
-                                ClaimNumber = vehicleClaims.Where(v => v.VehicleRegistionNumber == validVehicleRegistrationNumbers[i]).Select(c => c.ClaimNumber).FirstOrDefault(),
-                                VehicleRegistrationNumber = validVehicleRegistrationNumbers[i]
+                                ClaimNumber = rootClaim.ClaimNumber,
+                                VehicleRegistrationNumber = rootClaim.VehicleRegistionNumber,
+                                EventDate = rootClaim.EventDate
                             },
                             Parent = null
                         };
@@ -74,8 +83,15 @@ namespace Tree
                             {
                                 foreach (var cc in circles)
                                 {
+                                    // Remove claims happended in one day.
+
+                                    sw.WriteLine("=======================================");
                                     sw.WriteLine("Found a circle:" + cc.GetTraceString());
+                                    sw.WriteLine(tr.ToString());
+
+                                    Console.WriteLine("=======================================");
                                     Console.WriteLine("Found a circle:" + cc.GetTraceString());
+                                    Console.WriteLine(tr.ToString());
                                 }
                             }
                         }
@@ -114,7 +130,8 @@ namespace Tree
                         ClaimInfo = new Claim() 
                         { 
                             ClaimNumber = rv.ClaimNumber, 
-                            VehicleRegistrationNumber = rv.VehicleRegistionNumber 
+                            VehicleRegistrationNumber = rv.VehicleRegistionNumber,
+                            EventDate = rv.EventDate
                         } 
                     };
                     BuildTree2(currentNode, vehicleClaims, claimNumbersAlreadyIncluded);

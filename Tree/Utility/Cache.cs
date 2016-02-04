@@ -34,7 +34,7 @@ namespace Tree
                 List<string> vs = new List<string>();
                 return UsingCache<string[]>("VehicleRegistrationNumbers", () =>
                 {
-                    using (StreamReader sr = new StreamReader(@"C:\Users\cuiyuxuan\Documents\Visual Studio 2013\Projects\Tree\Tree\bin\Debug\AllVehicles.txt"))
+                    using (StreamReader sr = new StreamReader(@".\AllVehicles.txt"))
                     {
                         while (!sr.EndOfStream) 
                         {
@@ -50,6 +50,8 @@ namespace Tree
         public static List<VehicleClaimModel> GetVehicleClaims(string file)
         {
             List<VehicleClaimModel> vcs = new List<VehicleClaimModel>();
+            List<VehicleClaimModel> result = new List<VehicleClaimModel>();
+
             using (StreamReader sr = new StreamReader(file))
             {
                 while (!sr.EndOfStream) 
@@ -58,11 +60,81 @@ namespace Tree
                     if(line.Contains(","))
                     {
                         string[] ls = line.Split(',');
-                        VehicleClaimModel m = new VehicleClaimModel() { ID = int.Parse(ls[0]), ClaimNumber = ls[1], VehicleRegistionNumber = ls[2] };
+                        VehicleClaimModel m = new VehicleClaimModel() 
+                        { 
+                            ID = int.Parse(ls[0]),
+                            ClaimNumber = ls[1], //ls[2] + "_" + ls[3], , 
+                            VehicleRegistionNumber = ls[2], 
+                            EventDate = ls[3]
+                        };
                         vcs.Add(m);
                     }
                 }
             }
+
+            // Only keep valid Vehicle RegistrationNumber
+            vcs = vcs.Where(v => Program.IsValidVehicleRegistrationNumber(v.VehicleRegistionNumber))
+                     .ToList();
+
+            var claims = vcs.GroupBy(c => c.VehicleRegistionNumber + "#" + c.EventDate)
+                .Select(o => new { VehicleEvent = o.Key, CNT = o.Count() })
+                .Where(c => c.CNT > 1)
+                .ToList().Distinct();
+                                                                              
+            //var vrPair = claims.Select(c =>
+            //{
+            //    var a = c.VehicleEvent.Split(new string[] { "#" }, StringSplitOptions.RemoveEmptyEntries);
+            //    return new { VehicleRegistionNumber = a[0], EventDate = a[1], VE = c.VehicleEvent};
+            //}).Distinct();
+
+
+            /*
+            // Duplicated claim numbers
+
+            int count = 0;
+
+            // Step1
+            foreach (var item in vcs)
+            {
+                Console.WriteLine((count++) + "/" + vcs.Count());
+                if (vrPair.Where(vp => vp.VehicleRegistionNumber == item.VehicleRegistionNumber && vp.EventDate == item.EventDate).Count() == 0)
+                {
+                    result.Add(item);
+                }
+            }
+
+            count = 0;
+            foreach (var pair in vrPair)
+            {
+                Console.WriteLine((count++) + "/" + vrPair.Count());
+
+                string chosenClaimNumber = null;
+
+                List<VehicleClaimModel> tempList = new List<VehicleClaimModel>();
+
+                vcs.Where(v => v.VehicleRegistionNumber == pair.VehicleRegistionNumber &&
+                               v.EventDate == pair.EventDate)
+                    .ToList()
+                    .ForEach(i => 
+                    {
+                        if (chosenClaimNumber == null)
+                        {
+                            chosenClaimNumber = i.ClaimNumber;
+                            tempList.Add(i);
+                        }
+                        else 
+                        {
+                            i.ClaimNumber = chosenClaimNumber;
+                            tempList.Add(i);
+                        }
+                    });
+            }
+
+            var claims2 = result.GroupBy(c => c.VehicleRegistionNumber + "#" + c.EventDate)
+                             .Select(o => new { VehicleEvent = o.Key, CNT = o.Count() })
+                             .Where(c => c.CNT > 1)
+                             .ToList();
+             */
             return vcs;
         }
 
